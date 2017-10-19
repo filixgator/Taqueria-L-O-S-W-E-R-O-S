@@ -51,63 +51,51 @@ n=8
 
 
 #CREACION DE PEDIDOS
-pedido1 = Pedido(91017,15,sub_orden(20,"taco","asada",3,("aguacate","cebolla")))
+ingredientes_uno = ["cebolla","cilantro","aguacate"]
+ingredientes_dos = ["cebolla","limon","aguacate","frijoles"]
+orden = [sub_orden("BB41","taco","suadero",11,ingredientes_uno),sub_orden("BB42","mulita","adobada",12,ingredientes_dos)]
+pedido0 = Pedido(91016,14,orden)
+listaPedidos.append(pedido0)
+pedido1 = Pedido(91017,15,[sub_orden(20,"taco","asada",3,["aguacate","cebolla"])])
 listaPedidos.append(pedido1)
-
-pedido2 = Pedido(91017,15,sub_orden(20,"taco","asada",2,("aguacate","cebolla")))
+pedido2 = Pedido(91018,16,[sub_orden(20,"taco","asada",2,["aguacate","cebolla"])])
 listaPedidos.append(pedido2)
-
-pedido3 = Pedido(91017,15,sub_orden(20,"taco","adobada",42,("aguacate","cebolla")))
+pedido3 = Pedido(91019,17,[sub_orden(20,"taco","adobada",22,["aguacate","cebolla"])])
 listaPedidos.append(pedido3)
-
-pedido4 = Pedido(91017,15,sub_orden(20,"taco","lengua",13,("aguacate","cebolla")))
+pedido4 = Pedido(91020,18,[sub_orden(20,"taco","lengua",13,["aguacate","cebolla"])])
 listaPedidos.append(pedido4)
-
-pedido5 = Pedido(91017,15,sub_orden(20,"taco","veggie",16,("aguacate","cebolla")))
+pedido5 = Pedido(91021,19,[sub_orden(20,"taco","veggie",16,["aguacate","cebolla"])])
 listaPedidos.append(pedido5)
-
-pedido6 = Pedido(91017,15,sub_orden(20,"taco","suadero",8,("aguacate","cebolla")))
+pedido6 = Pedido(91022,20,[sub_orden(20,"taco","suadero",8,["aguacate","cebolla"])])
 listaPedidos.append(pedido6)
-
-pedido7 = Pedido(91017,15,sub_orden(20,"taco","tripa",21,("aguacate","cebolla")))
+pedido7 = Pedido(91023,21,[sub_orden(20,"taco","tripa",21,["aguacate","cebolla"])])
 listaPedidos.append(pedido7)
-
-pedido8 = Pedido(91017,15,sub_orden(20,"taco","cabeza",26,("aguacate","cebolla")))
+pedido8 = Pedido(91024,22,[sub_orden(20,"taco","cabeza",26,["aguacate","cebolla"])])
 listaPedidos.append(pedido8)
 
+def contarTacos(cantidadAsada,cantidadAdobada,cantidadCabeza,cantidadTripa,cantidadLengua,cantidadSuadero,cantidadVeggie):
+    for pedido in listaPedidos:
+        for subPedido in pedido.orden:
+            if subPedido.meat == "asada":
+                cantidadAsada = cantidadAsada+(subPedido.quantity)
+            elif subPedido.meat == "adobada":
+                cantidadAdobada = cantidadAdobada+(subPedido.quantity)
+            elif subPedido.meat == "cabeza":
+                cantidadCabeza = cantidadCabeza+(subPedido.quantity)
+            elif subPedido.meat == "tripa":
+                cantidadTripa = cantidadTripa+(subPedido.quantity)
+            elif subPedido.meat == "lengua":
+                cantidadLengua = cantidadLengua+(subPedido.quantity)
+            elif subPedido.meat == "suadero":
+                cantidadSuadero = cantidadSuadero+(subPedido.quantity)
+            elif subPedido.meat == "veggie":
+                cantidadVeggie = cantidadVeggie+(subPedido.quantity)
 
+    totalTacos = cantidadAsada+cantidadAdobada+cantidadCabeza+cantidadTripa+cantidadLengua+cantidadSuadero+cantidadVeggie
+    return (cantidadAsada,cantidadAdobada,cantidadCabeza,cantidadTripa,cantidadLengua,cantidadSuadero,cantidadVeggie,totalTacos)
 
-for pedido in listaPedidos:
-    if pedido.orden.meat == "asada":
-        cantidadAsada = cantidadAsada+(pedido.orden.quantity)
-    elif pedido.orden.meat == "adobada":
-        cantidadAdobada = cantidadAdobada+(pedido.orden.quantity)
-    elif pedido.orden.meat == "cabeza":
-        cantidadCabeza = cantidadCabeza+(pedido.orden.quantity)
-    elif pedido.orden.meat == "tripa":
-        cantidadTripa = cantidadTripa+(pedido.orden.quantity)
-    elif pedido.orden.meat == "lengua":
-        cantidadLengua = cantidadLengua+(pedido.orden.quantity)
-    elif pedido.orden.meat == "suadero":
-        cantidadSuadero = cantidadSuadero+(pedido.orden.quantity)
-    elif pedido.orden.meat == "veggie":
-        cantidadVeggie = cantidadVeggie+(pedido.orden.quantity)
-
-totalTacos = cantidadAsada+cantidadAdobada+cantidadCabeza+cantidadTripa+cantidadLengua+cantidadSuadero+cantidadVeggie
-
-
-       
-        
-print(len(listaPedidos))
-print("tacos asada",cantidadAsada)
-print("tacos adobada",cantidadAdobada)
-print(totalTacos)
-
-
-
-
-
-def graficar(cantidadAsada,cantidadAdobada,cantidadCabeza,cantidadTripa,cantidadLengua,cantidadSuadero, cantidadVeggie):
+def graficar():
+    cantidadAsada,cantidadAdobada,cantidadCabeza,cantidadTripa,cantidadLengua,cantidadSuadero,cantidadVeggie,totalTacos = contarTacos(0,0,0,0,0,0,0)
     root = Tk()
     canvas = Canvas(root, width=1000,height = 800, bg = 'white')
     canvas.pack()
@@ -257,7 +245,7 @@ def graficar(cantidadAsada,cantidadAdobada,cantidadCabeza,cantidadTripa,cantidad
 
     mainloop()
         
-graficar(cantidadAsada,cantidadAdobada,cantidadCabeza,cantidadTripa,cantidadLengua,cantidadSuadero, cantidadVeggie)
+graficar()
 
 
 
