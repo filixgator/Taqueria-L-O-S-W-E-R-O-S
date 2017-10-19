@@ -225,12 +225,35 @@ def graficar(cantidadAsada,cantidadAdobada,cantidadCabeza,cantidadTripa,cantidad
     canvas.create_rectangle(755,300-(((cantidadSuadero/totalTacos)*100)*2.9),796,300,fill = "blue")
     canvas.create_rectangle(796,300-(((cantidadVeggie/totalTacos)*100)*2.9),837,300,fill = "red")
 
-    #TABLA
-    canvas.create_rectangle(100,400,900,400+30*n)
+    canvas.create_rectangle(100,400,580,400+30*n)
     for i in range(n-1):
-        canvas.create_line(100,430+30*i,900,430+30*i)
-    for j in range(4):
-        canvas.create_line(260+160*j,400,260+160*j,400+30*n)
+	canvas.create_line(100,430+30*i,580,430+30*i)
+    for j in range(2):
+	canvas.create_line(260+160*j,400,260+160*j,400+30*n)
+    canvas.create_text(180,415,fill="darkblue",font="Times 8 italic bold",text="Tipo de taco")
+    canvas.create_text(180,445,fill="darkblue",font="Times 8 italic bold",text="Asada")
+    canvas.create_text(180,475,fill="darkblue",font="Times 8 italic bold",text="Adobada")
+    canvas.create_text(180,505,fill="darkblue",font="Times 8 italic bold",text="Cabeza")
+    canvas.create_text(180,535,fill="darkblue",font="Times 8 italic bold",text="Tripa")
+    canvas.create_text(180,565,fill="darkblue",font="Times 8 italic bold",text="Lengua")
+    canvas.create_text(180,595,fill="darkblue",font="Times 8 italic bold",text="Suadero")
+    canvas.create_text(180,625,fill="darkblue",font="Times 8 italic bold",text="Veggie")
+    canvas.create_text(340,415,fill="darkblue",font="Times 8 italic bold",text="Cantidad")
+    canvas.create_text(340,445,fill="darkblue",font="Times 8 italic bold",text=cantidadAsada)
+    canvas.create_text(340,475,fill="darkblue",font="Times 8 italic bold",text=cantidadAdobada)
+    canvas.create_text(340,505,fill="darkblue",font="Times 8 italic bold",text=cantidadCabeza)
+    canvas.create_text(340,535,fill="darkblue",font="Times 8 italic bold",text=cantidadTripa)
+    canvas.create_text(340,565,fill="darkblue",font="Times 8 italic bold",text=cantidadLengua)
+    canvas.create_text(340,595,fill="darkblue",font="Times 8 italic bold",text=cantidadSuadero)
+    canvas.create_text(340,625,fill="darkblue",font="Times 8 italic bold",text=cantidadVeggie)
+    canvas.create_text(500,415,fill="darkblue",font="Times 8 italic bold",text="Promedio")
+    canvas.create_text(500,445,fill="darkblue",font="Times 8 italic bold",text=(cantidadAsada/totalTacos)*100)
+    canvas.create_text(500,475,fill="darkblue",font="Times 8 italic bold",text=(cantidadAdobada/totalTacos)*100)
+    canvas.create_text(500,505,fill="darkblue",font="Times 8 italic bold",text=(cantidadCabeza/totalTacos)*100)
+    canvas.create_text(500,535,fill="darkblue",font="Times 8 italic bold",text=(cantidadTripa/totalTacos)*100)
+    canvas.create_text(500,565,fill="darkblue",font="Times 8 italic bold",text=(cantidadLengua/totalTacos)*100)
+    canvas.create_text(500,595,fill="darkblue",font="Times 8 italic bold",text=(cantidadSuadero/totalTacos)*100)
+    canvas.create_text(500,625,fill="darkblue",font="Times 8 italic bold",text=(cantidadVeggie/totalTacos)*100)
 
     mainloop()
         
