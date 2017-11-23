@@ -8,31 +8,27 @@ from threading import BoundedSemaphore
 from pprint import pprint
 from Queue import Queue
 from datetime import datetime as date
-
 #CLASES
 class Taquero(threading.Thread):
 	def __init__(self,ID):
 		threading.Thread.__init__(self)
 		self.request_id = None
 		self.sub_orden_id = None
-		self.answer = None
+		self.answer_steps = None
 		self.ID = "T{0}".format(ID)
 	def run(self):
 #		print(self.ID)
 		while True:
-			try:
-				## PREPARA ORDEN
-				IDS =  Queues[self.ID].get(False)
-				self.request_id = IDS[0]
-				self.sub_orden_id = IDS[1]
-				## OBTENER SUB_ORDEN DE LA BARRA
-				for SUB in Barra[self.request_id].orden:
-					if SUB.part_id == self.sub_orden_id:
-						self.answer = Prepara_Tacos(SUB,self)
-				Barra[self.request_id].answer.append(self.answer)
-			except:
-				time.sleep(0.5)
-				continue
+			## PREPARA ORDEN
+			IDS =  Queues[self.ID].get()
+			self.request_id = IDS[0]
+			self.sub_orden_id = IDS[1]
+			## OBTENER SUB_ORDEN DE LA BARRA
+			for SUB in Barra[self.request_id].orden:
+				if SUB.part_id == self.sub_orden_id:
+					self.answer_steps = Prepara_Tacos(SUB,self)
+			Barra[self.request_id].answer.steps.append(self.answer_steps)
+			time.sleep(1)
 			continue
 
 class Mesero(threading.Thread):
@@ -44,22 +40,22 @@ class Mesero(threading.Thread):
 		while True:	## REVISAR SI ALGUIEN EL BARRA YA TIENE ORDEN COMPLETA
 			ID_EN_BARRA = Barra.keys()
 			for id in ID_EN_BARRA:
-				if len(Barra[id].orden) == len(Barra[id].answer):
+				if len(Barra[id].orden) == len(Barra[id].answer.steps):
 					## GENERAR RESPUESTA
 					A = answer(Barra[id].datetime)
 					A.end_date = str(date.now())
-					A.steps = [Barra[id].answer[0]]
-					for r in range(1,len(Barra[id].answer)):
-						A.steps.append(Barra[id].answer[r])
+					A.steps = [Barra[id].answer.steps[0]]
+					for r in range(1,len(Barra[id].answer.steps)):
+						A.steps.append(Barra[id].answer.steps[r])
 					Barra[id].answer = A
 					json_Result = json.dumps(Barra[id], default=obj_dict)
 					RESULTS.append(Barra[id])
 					JSON_RESULTS.append(json_Result)
-			for i in JSON_RESULTS:
+			for i in RESULTS:
 				## QUITAR CLIENTE DE BARRA
-				if i[request_id] in ID_EN_BARRA:
-					print("DESPACHANDO CLIENTE: {0}".format(Barra[i[request_id]]))
-					del Barra[i[request_id]]
+				if i.request_id in ID_EN_BARRA:
+					print("DESPACHANDO CLIENTE: {0}".format(Barra[i.request_id]))
+					del Barra[i.request_id]
 
 class sub_orden(object):
 	def __init__(self,part_id,tipo,meat,quantity,ingredients):
@@ -82,7 +78,7 @@ class answer:
 	def __init__(self,start_time):
 		self.start_time = start_time
 		self.end_date = None
-		self.steps = None
+		self.steps = []
 
 class pedido(object):
 	def __init__(self,datetime,request_id,orden):
@@ -108,12 +104,14 @@ def obj_dict(obj):
 def json_2_Pedido(data):	## TRANSFORMA SQS A OBJETO PEDIDO
 	sub_ordenes = []
 	J = json.loads(data)	## CONVERTIR STRING A JSON
-	P = pedido(J['datetime'],J['request_id'],J['orden'])
-	for D in P.orden:	#'orden' es una lista de jsons
+#	P = pedido(J['datetime'],J['request_id'],J['orden'])
+	P = pedido()
+	P.datetime,P.request_id = J['datetime'],J['request_id']
+	for D in J['orden']:	#'orden' es una lista de jsons
 		SUB = sub_orden(D['part_id'],D['type'],D['meat'],D['quantity'],D['ingredients'])
 		sub_ordenes.append(SUB)
 	P.orden = sub_ordenes
-	P.answer = []
+	P.answer = answer(J['datetime'])
 	return P		## RETURN OBJETO PEDIDO
 
 ## B O R R A R
@@ -204,14 +202,14 @@ def Prepara_Tacos(sub_orden, Taquero):
 			steps_orden.append(st)
 		for i in sub_orden.ingredients:
 			sema.acquire()
-			if ingredients[i] > 1:
-				ingredients[i] -= 1
+			if ingredients[i.upper()] > 1:
+				ingredients[i.upper()] -= 1
 				sema.release()
 			else:
-				crea_ingrediente(ingredients,i)
+				crea_ingrediente(ingredients,i.upper())
 				sema.release()
 				## WAIT FOR INGREDIENT
-				st = steps(num_steps, "suspend", "waiting for {0}".format(i), sub_orden.part_id, str(date.now().time()))
+				st = steps(num_steps, "suspend", "waiting for {0}".format(i.upper()), sub_orden.part_id, str(date.now().time()))
 				num_steps += 1
 				st.endTime = str(date.now())
 				steps_orden.append(st)
@@ -225,7 +223,7 @@ def pull_SQS():
 	for message in response["Messages"]:
 		recibidos.append(message['ReceiptHandle'])
 		Orden_SQS = message['Body']
-		print(Orden_SQS)
+#		print(Orden_SQS)
 		Orden_SQS = json_2_Pedido(Orden_SQS)
 	return Orden_SQS
 
@@ -243,18 +241,19 @@ def asignarQ(ID_PED, ID_SUB):
 
 def main():
 	print("==== M A I N ====")
-	SQS_List = Ordenes(numero_de_Pedidos)
-	print("QUEUE SIZE: {0}".format(SQS_List.qsize()))
+#	SQS_List = Ordenes(numero_de_Pedidos)
 	Todas_las_Ordenes = []
 	Todas_pero_json = []
 #	while not SQS_List.empty():
-	for i in range(3):
+	for i in range(15):
 		## PULL DE SQS
 #		pedido_Actual = SQS_List.get()
 		pedido_Actual = pull_SQS()
-
-		Barra[str(pedido_Actual.request_id)] = pedido_Actual
-		print(len(Barra.keys()))
+		while True:
+			if len(Barra.keys())< B_Size:
+				Barra[str(pedido_Actual.request_id)] = pedido_Actual
+				break
+			else:	continue
 		for sub in pedido_Actual.orden:
 		## ASIGNAR QUEUE A CADA SUB_ORDEN DEL PEDIDO
 			asignarQ(pedido_Actual.request_id, sub.part_id)
@@ -263,30 +262,30 @@ def main():
 	time.sleep(5)
 	## IMPRIMIR ORDENES COMPLETAS
 	print("\n IMPRIME JSON_RESULTS")
-	for element in JSON_RESULTS:
-		print('Pedido: {0} \t Start Date: {1} \t End Date: {2}'.format(element[request_id], element[answer][start_time], element[answer][end_date]))
-	quit()
+	for element in RESULTS:
+		print('Pedido: {0} \t Start Date: {1} \t End Date: {2}'.format(element.request_id, element.answer.start_time, element.answer.end_date))
+
 
 
 ## VARIABLES
 sema = BoundedSemaphore()
 numero_de_Pedidos = 100
-Tortillas =   {"T1" : 500, "T2" : 500, "T3" : 500}
-ingredients =   {"cebolla" : 500, "cilantro" : 500,"salsa" : 500, "guacamole" : 500, "queso" : 500}
-#Taquero_1 = Taquero(1)
-#Taquero_2 = Taquero(2)
-#Taquero_3 = Taquero(3)
-#Taquero_1.start()
-#Taquero_2.start()
-#Taquero_3.start()
-Q_Size = 3
+Q_Size = 5
+B_Size = 10
 Queues = {"T1" : Queue(Q_Size), "T2" : Queue(Q_Size), "T3" : Queue(Q_Size)}
+Tortillas =   {"T1" : 500, "T2" : 500, "T3" : 500}
+ingredients =   {"CEBOLLA" : 500, "CILANTRO" : 500, "SALSA" : 500, "GUACAMOLE" : 500, "QUESO" : 500, "FRIJOLES" : 500}
+Taquero_1 = Taquero(1)
+Taquero_2 = Taquero(2)
+Taquero_3 = Taquero(3)
+Taquero_1.start()
+Taquero_2.start()
+Taquero_3.start()
 Barra = {}
 RESULTS = []
 JSON_RESULTS = []
-#MESERO = Mesero()
-#MESERO.start()
-print(t())
+MESERO = Mesero()
+MESERO.start()
 ## MAIN
-#main()
-print(pull_SQS())
+main()
+#print(pull_SQS())
