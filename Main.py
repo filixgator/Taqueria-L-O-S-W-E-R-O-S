@@ -17,7 +17,7 @@ class Taquero(threading.Thread):
 		self.answer_steps = None
 		self.ID = "T{0}".format(ID)
 	def run(self):
-#		print(self.ID)
+		print(self.ID)
 		while True:
 			## PREPARA ORDEN
 			IDS =  Queues[self.ID].get()
@@ -54,7 +54,7 @@ class Mesero(threading.Thread):
 			for i in RESULTS:
 				## QUITAR CLIENTE DE BARRA
 				if i.request_id in ID_EN_BARRA:
-					print("DESPACHANDO CLIENTE: {0}".format(Barra[i.request_id]))
+					print("CLIENTE DESPACHADO: {0}".format(Barra[i.request_id]))
 					del Barra[i.request_id]
 
 class sub_orden(object):
@@ -104,7 +104,6 @@ def obj_dict(obj):
 def json_2_Pedido(data):	## TRANSFORMA SQS A OBJETO PEDIDO
 	sub_ordenes = []
 	J = json.loads(data)	## CONVERTIR STRING A JSON
-#	P = pedido(J['datetime'],J['request_id'],J['orden'])
 	P = pedido()
 	P.datetime,P.request_id = J['datetime'],J['request_id']
 	for D in J['orden']:	#'orden' es una lista de jsons
@@ -156,7 +155,6 @@ def pull_SQS():
 	for message in response["Messages"]:
 		recibidos.append(message['ReceiptHandle'])
 		Orden_SQS = message['Body']
-#		print(Orden_SQS)
 		Orden_SQS = json_2_Pedido(Orden_SQS)
 	return Orden_SQS
 
@@ -174,13 +172,11 @@ def asignarQ(ID_PED, ID_SUB):
 
 def main():
 	print("==== M A I N ====")
-#	SQS_List = Ordenes(numero_de_Pedidos)
 	Todas_las_Ordenes = []
 	Todas_pero_json = []
 #	while not SQS_List.empty():
 	for i in range(15):
 		## PULL DE SQS
-#		pedido_Actual = SQS_List.get()
 		pedido_Actual = pull_SQS()
 		while True:
 			if len(Barra.keys())< B_Size:
@@ -221,4 +217,4 @@ MESERO = Mesero()
 MESERO.start()
 ## MAIN
 main()
-#print(pull_SQS())
+
