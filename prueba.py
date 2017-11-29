@@ -1,28 +1,43 @@
 import matplotlib.pyplot as plt
-names = ['Mulitas','Quesadillas','Tacos','Tortas','Tostadas']
-values = [10, 10,20,30, 40]
+import pandas as pd
+import numpy as np
+
 
 plt.figure(1, figsize=(18, 5))
-
-#Cantidad de tacos
-plt.subplot(231)
-plt.bar(names, values)
-
-#Tiempo por orden
-plt.subplot(232)
-plt.plot(names, values)
+#Datos de prueba
+diccTacos = {'Mulitas':35,'Quesadillas':43,'Tacos':41,'Tortas':13,'Tostadas':39}
+diccIngredientes = {"CEBOLLA" : [500,400,350,300], "CILANTRO" : [500,450,400], "SALSA" : 500, "GUACAMOLE" : 500, "QUESO" : 500, "FRIJOLES" : 500}
+diccTiempo = {"CEBOLLA" : 500, "CILANTRO" : 500}
 
 
-#Promedio por orden
-plt.subplot(233)
-plt.scatter(names, values)
+def graficar(diccTacos,diccIngredientes):
+	names = ['Mul','Ques','Tacos','Tortas','Tost']
+	values = [diccTacos['Mulitas'],diccTacos['Quesadillas'],diccTacos['Tacos'],diccTacos['Tortas'], diccTacos['Tostadas']]
 
-#Grafica 4
-plt.subplot(234)
-plt.scatter(names, values)
+	#Cantidad de tacos
+	plt.subplot(231)
+	plt.bar(names, values)
 
-#Grafica 5
-plt.subplot(235)
-plt.scatter(names, values)
-plt.suptitle('Taqueria los WERS')
-plt.show()
+	#Tiempo por orden
+	plt.subplot(232)
+	plt.plot(names, values)
+
+	#Promedio por orden
+	plt.subplot(233)
+	plt.scatter(names, values)
+
+	#Ingredientes
+	plt.subplot(234)
+	for i in diccIngredientes.keys():
+		plt.plot(diccIngredientes[i],label=i)
+
+
+	#Tabla tamanio ordenes
+	plt.subplot(235)
+#	plt.table(names, values)
+
+
+	plt.suptitle('Taqueria los WERS')
+	plt.show()
+
+graficar(diccTacos,diccIngredientes)
