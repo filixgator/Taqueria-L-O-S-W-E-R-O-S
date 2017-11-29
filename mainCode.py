@@ -3,6 +3,7 @@ import random
 import threading
 import json
 import boto3
+from copy import copy
 from time import time as t
 from threading import BoundedSemaphore
 from pprint import pprint
@@ -23,26 +24,40 @@ class Taquero(threading.Thread):
 		print(self.ID)
 		while True:
 			## ELIGE ENTRE ORDEN DE QUEUE O DE ORDEN DE HOLD
-			self.request = Queues[self.ID].get()
 			if self.Hold == None:
-				self.Hold = self.request
-				self.request = Queues[self.ID].get()
-			if self.Hold[2] >= self.request[2] and self.counter < CONTADOR:
-				self.request_id = self.request[0]
-				self.sub_orden_id = self.request[1]
-				self.counter += 1
-			else:
+				try:	self.Hold = Queues[self.ID].get(False)
+				except:	self.Hold = None
+			if self.request == None:
+				try:	self.request = Queues[self.ID].get()
+				except:	self.request = None
+			if self.Hold == None and self.request == None:	continue
+			elif self.Hold != None and self.request != None:
+				if self.Hold[2] >= self.request[2] and self.counter < CONTADOR:
+					self.request_id = self.request[0]
+					self.sub_orden_id = self.request[1]
+					self.request = None
+					self.counter += 1
+				else:
+					self.request_id = self.Hold[0]
+					self.sub_orden_id = self.Hold[1]
+					self.Hold = None
+					self.counter = 0
+			elif self.request == None:
 				self.request_id = self.Hold[0]
 				self.sub_orden_id = self.Hold[1]
-				self.Hold = self.request
-				self.counter = 0
+				self.Hold = None
+			elif self.Hold == None:
+				self.request_id = self.request[0]
+				self.sub_orden_id = self.request[1]
+				self.request = None
 			## OBTENER SUB_ORDEN DE LA BARRA
-			for SUB in Barra[self.request_id].orden:
-				if SUB.part_id == self.sub_orden_id:
-					## PREPARA SUB_ORDEN
-					self.answer_steps = Prepara_Tacos(SUB,self)
-			Barra[self.request_id].answer.steps.append(self.answer_steps)
-			time.sleep(1)
+			if self.request_id != None:
+				for SUB in Barra[self.request_id].orden:
+					if SUB.part_id == self.sub_orden_id:
+						## PREPARA SUB_ORDEN
+						self.answer_steps = Prepara_Tacos(SUB,self)
+				Barra[self.request_id].answer.steps.append(self.answer_steps)
+				time.sleep(1)
 			continue
 
 class Mesero(threading.Thread):
@@ -63,14 +78,19 @@ class Mesero(threading.Thread):
 						for r in R:
 							A.steps.append(r)
 					Barra[id].answer = A
-					json_Result = json.dumps(Barra[id], default=obj_dict)
+#					A_SQS = json.dumps(Barra[id], default=obj_dict)
+					A_SQS = json.dumps(A, default=obj_dict)
+					## RESPONDER A SQS
+                                        reply_SQS(A_SQS,id)
 					RESULTS.append(Barra[id])
-					JSON_RESULTS.append(json_Result)
+#					JSON_RESULTS.append(A_SQS)
 			for i in RESULTS:
 				## QUITAR CLIENTE DE BARRA
 				if i.request_id in ID_EN_BARRA:
 					print("\t CLIENTE DESPACHADO: {0}".format(Barra[i.request_id]))
 					del Barra[i.request_id]
+					## DELETE DE SQS
+					delete_SQS(i.request_id)
 
 class sub_orden(object):
 	def __init__(self,part_id,tipo,meat,quantity,ingredients):
@@ -129,8 +149,8 @@ def json_2_Pedido(data):	## TRANSFORMA SQS A OBJETO PEDIDO
 
 ## CREA TORTILLAS O CUALQUIER INGREDIENTE
 def crea_ingrediente(dicc, ingrediente):
-	time.sleep(0.2)
-	dicc[ingrediente] = 20
+	time.sleep(SLEEP_TIME)
+	dicc[ingrediente] = 500
 	return
 
 def Prepara_Tacos(sub_orden, Taquero):
@@ -178,14 +198,23 @@ def Prepara_Tacos(sub_orden, Taquero):
 	return steps_orden
 
 def pull_SQS():
-	sqs = boto3.client('sqs')	## READ FROM SQS
+	## READ FROM SQS
 	response = sqs.receive_message(QueueUrl='https://sqs.us-east-1.amazonaws.com/292274580527/cc406_team5')
-	recibidos = []
 	for message in response["Messages"]:
-		recibidos.append(message['ReceiptHandle'])
+#		recibidos.append(message['ReceiptHandle'])
 		Orden_SQS = message['Body']
 		Orden_SQS = json_2_Pedido(Orden_SQS)
+		recibidos[Orden_SQS.request_id] = message['ReceiptHandle']
 	return Orden_SQS
+
+def reply_SQS(ANSWER,ID):
+	reply = sqs.send_message(QueueUrl='https://sqs.us-east-1.amazonaws.com/292274580527/cc406_response5',MessageBody=ANSWER)
+	print("\t \t RESPONDER SQS: {0}".format(ID))
+
+def delete_SQS(ID):
+	RECEIPT = recibidos[ID]
+	delete = sqs.delete_message(QueueUrl='https://sqs.us-east-1.amazonaws.com/292274580527/cc406_team5',ReceiptHandle=RECEIPT)
+	print("\t DELETE: {0}".format(ID))
 
 def asignarQ(ID_PED, ID_SUB, SUB_SIZE):
 	while True:		## ASIGNAR QUEUE DE ESPERA
@@ -204,7 +233,7 @@ def main():
 	Todas_las_Ordenes = []
 	Todas_pero_json = []
 #	while not SQS_List.empty():
-	for i in range(16):
+	for i in range(100):
 		## PULL DE SQS
 		pedido_Actual = pull_SQS()
 		while True:
@@ -217,7 +246,7 @@ def main():
 			asignarQ(pedido_Actual.request_id, sub.part_id, sub.quantity)
 		continue
 
-	time.sleep(10)
+	time.sleep(120)
 	## IMPRIMIR ORDENES COMPLETAS
 	print("\n \t IMPRIME RESULTS")
 	num = 1
@@ -229,14 +258,16 @@ def main():
 
 
 ## VARIABLES
+sqs = boto3.client('sqs')
 sema = BoundedSemaphore()
-numero_de_Pedidos = 100
-Q_Size = 5
-B_Size = 10
+SLEEP_TIME = 5
+recibidos = {}
+Q_Size = 10
+B_Size = 20
 CONTADOR = 5
 Queues = {"T1" : Queue(Q_Size), "T2" : Queue(Q_Size), "T3" : Queue(Q_Size)}
-Tortillas =   {"T1" : 5, "T2" : 5, "T3" : 5}
-ingredients =   {"CEBOLLA" : 5, "CILANTRO" : 5, "SALSA" : 5, "GUACAMOLE" : 5, "QUESO" : 5, "FRIJOLES" : 5}
+Tortillas =   {"T1" : 500, "T2" : 500, "T3" : 500}
+ingredients =   {"CEBOLLA" : 500, "CILANTRO" : 500, "SALSA" : 500, "GUACAMOLE" : 500, "QUESO" : 500, "FRIJOLES" : 500}
 Taquero_1 = Taquero(1)
 Taquero_2 = Taquero(2)
 Taquero_3 = Taquero(3)
