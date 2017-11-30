@@ -1,11 +1,19 @@
+### How it works:
+
+![Alt Text](https://github.com/filixgator/Taqueria-L-O-S-W-E-R-O-S/blob/master/1.png)
+![Alt Text](https://github.com/filixgator/Taqueria-L-O-S-W-E-R-O-S/blob/master/2.png)
+![Alt Text](https://github.com/filixgator/Taqueria-L-O-S-W-E-R-O-S/blob/master/3.png)
+![Alt Text](https://github.com/filixgator/Taqueria-L-O-S-W-E-R-O-S/blob/master/4.png)
+
 # Tacos  L O S  |  W E R O S
 
-Here, we create a taco shop that reads, processes, and answer orders from SQS. Just like a real taco shop, we have Taqueros, Tortilleras, and even a bar.
-  - Types: 
+El programa simula una taquería que lee, procesa y responde órdenes de SQS. Simula taqueros, ingredientes y órdenes en tiempo real
+
+  - Platillo: 
     - Tacos, Quesadilla, Mulita, Tostada, Tortas
-  - Meat:
+  - Carne:
     - Asada, Adobada, Cabeza, Lengua, Suadero       
-  - Ingredients:
+  - Ingredientes:
     - Cebolla, Salsa, Guacamole, Queso, Frijoles 
 
 # Authors:
@@ -16,16 +24,16 @@ Here, we create a taco shop that reads, processes, and answer orders from SQS. J
   
 ### Support
 
-Taqueria L-O-S-W-E-R-O-S used the following to work correctly:
+Taqueria L-O-S-W-E-R-O-S usa los siguientes recursos para su funcionamiento:
 
-* [Matplotlib] - Helps with the graphics in a user-friendly way
+[Matplotlib](https://matplotlib.org/) - Grafica de manera amigable
 
 
- Taqueria L-O-S-W-E-R-O-S itself is open source with a [public repository][Taqueria L-O-S-W-E-R-O-S] on GitHub.
+ Taqueria L-O-S-W-E-R-O-S es un programa de código abierto [public repository][Taqueria L-O-S-W-E-R-O-S] en GitHub.
 
 ### Installation
 
-Taqueria L-O-S-W-E-R-O-S requires some extra libraries for it to run:  
+Taqueria L-O-S-W-E-R-O-S requiere de librerías extras para su ejecución:  
 
 [Boto3](https://github.com/boto/boto3) 
 
@@ -96,10 +104,6 @@ We also used other libraries that are already installed in python and only have 
 - Threading
 - Time 
 - Queue
-
-### How it works:
-
-![Alt Text](https://github.com/AnaValeriaGM/TacosFranc/blob/master/finalflow2.png)
 
 
 
