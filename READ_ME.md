@@ -82,7 +82,7 @@ Se usó la librería de Json, para estructurar la data que sería interpretada p
         
 [Matplotlib](https://matplotlib.org/)
 
-This library was used to plot, make graphs and tables. To install it we did: 
+Esta ibrería se usó para graficar y tabular. Para su instalación se siguen los siguientes pasos: 
            
 Debian / Ubuntu:
 ```sh
@@ -93,27 +93,23 @@ Windows:
       python -m pip install -U pip setuptools
       python -m pip install matplotlib
 ```  
-In our python files (where the graphs were made) we imported this library as: 
+En nuestro archivo main de python se imprtó la librería de la siguiente manera: 
 ```sh
-      import matplotlib.pyplot
+      import matplotlib.pyplot as ptl
 ```
 
-#### Others
+#### Otros
 
-We also used other libraries that are already installed in python and only have to be imported to the files in which they will be used like: 
+También se usaro otras librerías que ya están instaladas en python y sólo deben mandarse a llamar desde los archivos existentes como: 
 - Threading
 - Time 
 - Queue
 
 
-
-**Free Software, Hell Yeah!**
-
 [//]: # (These are reference links used in the body of this note and get stripped out when the markdown processor does its job. There is no need to format nicely because it shouldn't be seen. Thanks SO - http://stackoverflow.com/questions/4823468/store-comments-in-markdown-syntax)
 
 
-   [TacosFranc]: <https://github.com/AnaValeriaGM/TacosFranc/tree/master/CarpetaProyecto>
-   [PyQT]: <https://github.com/pyqtgraph/pyqtgraph>
+   [Taqueria-L-O-S-W-E-R-O-S]: <https://github.com/filixgator/Taqueria-L-O-S-W-E-R-O-S>
 
 
 
