@@ -3,7 +3,9 @@ import random
 import threading
 import json
 import boto3
+import matplotlib.pyplot as plt
 from prueba import graficar
+from prueba import CREA
 from copy import copy
 from time import time as t
 from threading import BoundedSemaphore
@@ -15,11 +17,14 @@ from datetime import datetime as date
 class Graficador(threading.Thread):
 	def __init__(self):
 		threading.Thread.__init__(self)
-	def run(self):	
-		for i in range(100):
-			try:
-				graficar(D_Tacos, D_Ingre, D_Orden)
-			except: time.sleep(1)
+		self.P = None
+	def run(self):
+		self.P = CREA()
+		print("CREADO")
+		for i in range(100000):
+			if len(D_Tacos.keys()) > 1 and len(D_Orden_Barra.keys()) > 1 and len(D_Ingre.keys()) > 1:
+				self.P = graficar(self.P, D_Tacos, D_Ingre, D_Orden_Barra)
+
 class Taquero(threading.Thread):
 	def __init__(self,ID):
 		threading.Thread.__init__(self)
@@ -97,12 +102,12 @@ class Mesero(threading.Thread):
 					## RESPONDER A SQS
                                         reply_SQS(A_SQS,id)
 					RESULTS.append(Barra[id])
-#					JSON_RESULTS.append(A_SQS)
 			for i in RESULTS:
 				## QUITAR CLIENTE DE BARRA
 				if i.request_id in ID_EN_BARRA:
 					print("\t CLIENTE DESPACHADO: {0}".format(Barra[i.request_id]))
 					del Barra[i.request_id]
+					del D_Orden_Barra[i.request_id]
 					## DELETE DE SQS
 					delete_SQS(i.request_id)
 					## D_INGRE SE ACTUALIZA
@@ -152,12 +157,12 @@ class pedido(object):
 def obj_dict(obj):
 	return obj.__dict__
 
-def json_2_Pedido(data):	## TRANSFORMA SQS A OBJETO PEDIDO
+def json_2_Pedido(data):
 	sub_ordenes = []
-	J = json.loads(data)	## CONVERTIR STRING A JSON
+	J = json.loads(data)
 	P = pedido()
 	P.datetime,P.request_id = J['datetime'],J['request_id']
-	for D in J['orden']:	#'orden' ES UNA LISTA DE SUBORDENES
+	for D in J['orden']:
 		SUB = sub_orden(D['part_id'],D['type'],D['meat'],D['quantity'],D['ingredients'])
 		sub_ordenes.append(SUB)
 	P.orden = sub_ordenes
@@ -167,12 +172,13 @@ def json_2_Pedido(data):	## TRANSFORMA SQS A OBJETO PEDIDO
 ## CREA TORTILLAS O CUALQUIER INGREDIENTE
 def crea_ingrediente(dicc, ingrediente):
 	time.sleep(SLEEP_TIME)
-	dicc[ingrediente] = 50
+	dicc[ingrediente] = 500
 	return
 
 def Prepara_Tacos(sub_orden, Taquero):
 	steps_orden = [steps(1, "running", "working on order", sub_orden.part_id, str(date.now().time()))]
 	num_steps = 2
+	T = t()
 	for taco in range(sub_orden.quantity):
 		D_Tacos[str(sub_orden.tipo).upper()] +=1
 		if Tortillas[Taquero.ID] > 1:
@@ -213,8 +219,9 @@ def Prepara_Tacos(sub_orden, Taquero):
 	st.endTime = str(date.now().time())
 	steps_orden.append(st)
 	steps_orden[0].endTime = str(date.now().time())
-#	if float(len(D_Orden.keys())/2) != 0:	PROM = float(D_Tacos[str(sub_orden.tipo).upper()]) / float(len(D_Orden.keys())/2)
-#	else:	PROM = 0
+	TEnd = t()
+	TTOTAL = TEnd-T
+	D_Tacos["T{0}".format(str(sub_orden.tipo).upper())].append(TTOTAL)
 	PROM = float(D_Tacos[str(sub_orden.tipo).upper()]) / float(len(D_Orden.keys()))
 	D_Tacos["P{0}S".format(str(sub_orden.tipo).upper())] = PROM
 	return steps_orden
@@ -223,7 +230,6 @@ def pull_SQS():
 	## READ FROM SQS
 	response = sqs.receive_message(QueueUrl='https://sqs.us-east-1.amazonaws.com/292274580527/cc406_team5')
 	for message in response["Messages"]:
-#		recibidos.append(message['ReceiptHandle'])
 		Orden_SQS = message['Body']
 		Orden_SQS = json_2_Pedido(Orden_SQS)
 		recibidos[Orden_SQS.request_id] = message['ReceiptHandle']
@@ -248,32 +254,33 @@ def asignarQ(ID_PED, ID_SUB, SUB_SIZE):
 				return
 	return
 
-
-
 def main():
 	print("==== M A I N ====")
 	Todas_las_Ordenes = []
 	Todas_pero_json = []
 	G = Graficador()
-	G.start()
-#	while not SQS_List.empty():
-	for i in range(50):
+	i = 0
+	while True:
+#	for i in range(50):
 		## PULL DE SQS
 		pedido_Actual = pull_SQS()
+		if i == 1:	G.start()
 		while True:
 			if len(Barra.keys())< B_Size:
 				Barra[str(pedido_Actual.request_id)] = pedido_Actual
 				D_Orden[str(pedido_Actual.request_id)] = 0
+				D_Orden_Barra[str(pedido_Actual.request_id)] = 0
 				break
 			else:	continue
 		for sub in pedido_Actual.orden:
 		## ASIGNAR QUEUE A CADA SUB_ORDEN DEL PEDIDO
 			D_Orden[str(pedido_Actual.request_id)] += sub.quantity
+			D_Orden_Barra[str(pedido_Actual.request_id)] += sub.quantity
 			asignarQ(pedido_Actual.request_id, sub.part_id, sub.quantity)
-#		graficar(D_Tacos, D_Ingre, D_Orden)
+		i += 1
 		continue
 
-	time.sleep(60)
+#	time.sleep(60)
 	## IMPRIMIR ORDENES COMPLETAS
 	print("\n \t IMPRIME RESULTS \t {0}".format(len(RESULTS)))
 	num = 1
@@ -286,10 +293,6 @@ def main():
 	Taquero_2.CONTINUE = False
 	Taquero_3.CONTINUE = False
 	MESERO.CONTINUE = False
-	#Taquero_1.join()
-	#Taquero_2.join()
-	#Taquero_3.join()
-	#MESERO.join()
 	for K in D_Tacos.keys():
 		print('{0}S totales: {1}'.format(K,D_Tacos[K]))
 
@@ -297,14 +300,14 @@ def main():
 ## VARIABLES
 sqs = boto3.client('sqs')
 sema = BoundedSemaphore()
-SLEEP_TIME = 1
+SLEEP_TIME = 5
 recibidos = {}
 Q_Size = 10
 B_Size = 20
 CONTADOR = 5
 Queues = {"T1" : Queue(Q_Size), "T2" : Queue(Q_Size), "T3" : Queue(Q_Size)}
 Tortillas =   {"T1" : 500, "T2" : 500, "T3" : 500}
-ingredients =   {"CEBOLLA" : 50, "CILANTRO" : 50, "SALSA" : 50, "GUACAMOLE" : 50, "QUESO" : 50, "FRIJOLES" : 50}
+ingredients =   {"CEBOLLA" : 500, "CILANTRO" : 500, "SALSA" : 500, "GUACAMOLE" : 500, "QUESO" : 500, "FRIJOLES" : 500}
 D_Tacos = 	{'MULITA' : 0,
 		 'QUESADILLA' : 0,
 		 'TACO' : 0,
@@ -314,9 +317,15 @@ D_Tacos = 	{'MULITA' : 0,
 		 'PQUESADILLAS' : 0,
 		 'PTACOS' : 0,
 		 'PTORTAS' : 0,
-		 'PTOSTADAS' : 0}
-D_Ingre = 	{"CEBOLLA" : [50], "CILANTRO" : [50], "SALSA" : [50], "GUACAMOLE" : [50], "QUESO" : [50], "FRIJOLES" : [50]}
+		 'PTOSTADAS' : 0,
+		 'TMULITA' : [],
+		 'TQUESADILLA' : [],
+		 'TTACO' : [],
+		 'TTORTA' : [],
+		 'TTOSTADA' : []}
+D_Ingre = 	{"CEBOLLA" : [500], "CILANTRO" : [500], "SALSA" : [500], "GUACAMOLE" : [500], "QUESO" : [500], "FRIJOLES" : [500]}
 D_Orden = {}
+D_Orden_Barra = {}
 Taquero_1 = Taquero(1)
 Taquero_2 = Taquero(2)
 Taquero_3 = Taquero(3)
