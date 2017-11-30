@@ -37,17 +37,17 @@ Taqueria L-O-S-W-E-R-O-S requiere de librerías extras para su ejecución:
 
 [Boto3](https://github.com/boto/boto3) 
 
-It is the amazon web services (AWS) developing software kit (SDK) for python. This module allows python developers to write software that makes use of the amazon services. To install Boto3 we have to write in the terminal:
+Es el the amazon web services (AWS) developing software kit (SDK) para python. Este módulo permite a ddesarrolladores de python programar software que haga uso de los servicios de mensajería de Amazon. Para su instalación se debe escribir en terminal:
 
 ```sh
   $ pip install boto3
 ```
-Then, we have to set the credentials in an encrypted file:
+Luego se definen las credenciales en un archivo encriptado:
 
 ```sh
       ~/.aws/credentials 
 ```
- Inside this file we will have:
+ Dentro de este archivo se encuentran un ID de la clave de acceso y una clave secreta de acceso:
  
 ```sh
      [default]
@@ -55,27 +55,27 @@ Then, we have to set the credentials in an encrypted file:
      aws_secret_access_key = YOUR_SECRET_ACCESS_KEY         
 ```
 
-After that we have to set the region in the same encrypted folder , but different file: 
+Después se define la región en el mismo folder encriptado pero en un archivo diferente:
 
 ```sh
       ~/.aws/config        
 ```
-Inside this file we will have: 
+Este archivo debe contener: 
 ```sh
       [default]
       region=us-east-1      
 ```
- In python it is important to import boto3 in our file:
+ En python se importa la librería al archivo del programa:
  
 ```sh
       import boto3    
 ```       
           
-In our program we used this library to receive orders and send the corresponding response.
+El uso de esta librería es recivir órdenes y regresar una respuesta correspondiente.
 
 [Json](https://docs.python.org/2/library/json.html)
 
-We used the Json library, Json is a way to structure data for it to be interpreted by any language. To use it the only thing we have to do is import it in our python file: 
+Se usó la librería de Json, para estructurar la data que sería interpretada por el lenguade de elección, python. Para usar esta librería solo es necesario importarla en nuestro archivo main. 
 ```sh
       import json  
 ```   
