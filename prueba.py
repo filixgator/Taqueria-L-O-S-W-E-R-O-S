@@ -1,18 +1,17 @@
 import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
+import time
 
-
-plt.figure(1, figsize=(18, 5))
+#plt.figure(1, figsize=(18, 5))
 #Datos de prueba
-diccTacos = {'Mulitas':35,'Quesadillas':43,'Tacos':41,'Tortas':13,'Tostadas':39, 'PMulitas':35,'PQuesadillas':43,'PTacos':41,'PTortas':13,'PTostadas':39}
-diccIngredientes = {"CEBOLLA" : [500,400,350,300], "CILANTRO" : [500,450,400], "SALSA" : [500,480,430], "GUACAMOLE" : [500,470,420], "QUESO" : [500,300,250], "FRIJOLES" : [500,450,300]}
-diccOrdenes = {"121_253" : 5, "257_426" : 2}
+#diccTacos = {'Mulitas':35,'Quesadillas':43,'Tacos':41,'Tortas':13,'Tostadas':39, 'PMulitas':35,'PQuesadillas':43,'PTacos':41,'PTortas':13,'PTostadas':39}
+#diccIngredientes = {"CEBOLLA" : [500,400,350,300], "CILANTRO" : [500,450,400], "SALSA" : [500,480,430], "GUACAMOLE" : [500,470,420], "QUESO" : [500,300,250], "FRIJOLES" : [500,450,300]}
+#diccOrdenes = {"121_253" : 5, "257_426" : 2}
 
 def graficar(diccTacos,diccIngredientes,diccOrdenes):
+	plt.figure(1, figsize=(18, 5))
 	names = ['Mul','Ques','Tacos','Tortas','Tost']
-	values = [diccTacos['Mulitas'],diccTacos['Quesadillas'],diccTacos['Tacos'],diccTacos['Tortas'], diccTacos['Tostadas']]
-	valuesP = [diccTacos['PMulitas'],diccTacos['PQuesadillas'],diccTacos['PTacos'],diccTacos['PTortas'], diccTacos['PTostadas']]
+	values = [diccTacos['MULITA'],diccTacos['QUESADILLA'],diccTacos['TACO'],diccTacos['TORTA'], diccTacos['TOSTADA']]
+	valuesP = [diccTacos['PMULITAS'],diccTacos['PQUESADILLAS'],diccTacos['PTACOS'],diccTacos['PTORTAS'], diccTacos['PTOSTADAS']]
 
 	#Cantidad de tacos
 	plt.subplot(231)
@@ -47,9 +46,10 @@ def graficar(diccTacos,diccIngredientes,diccOrdenes):
 		colLabels=cols,
 		loc='center')
 
-	plt.suptitle('Taqueria los WERS')
+	plt.suptitle('Taqueria  L O S   W E R O S')
 	plt.show()
+	plt.pause(3)
+	plt.close()
 
-graficar(diccTacos,diccIngredientes,diccOrdenes)
+#graficar(diccTacos,diccIngredientes,diccOrdenes)
 #print(len(diccTiempo))
-
